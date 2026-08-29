@@ -240,11 +240,12 @@ async function requestWithOpenAiCompatible(
   });
 
   // 尝试多个可能的 chat completions 端点路径
-  const pathsToTry = baseUrl.endsWith("/v1")
+  // 注意：Base URL 若已带版本号（如 .../api/v3、.../api/plan/v3），应直接拼端点，
+  // 否则会拼出 .../v3/v1/chat/completions 这类不存在的路径（HTTP 404）。
+  // 与模型识别 / 连接测试 / 生图的路径解析保持一致。
+  const pathsToTry = /\/v\d+(beta)?$/.test(baseUrl)
     ? ["/chat/completions"]
-    : baseUrl.endsWith("/v1beta")
-      ? ["/chat/completions"]
-      : ["/v1/chat/completions"];
+    : ["/v1/chat/completions"];
 
   let lastError: Error | null = null;
 
@@ -567,4 +568,27 @@ export async function optimizePromptWithProvider(
       message: error instanceof Error ? error.message : "优化失败。"
     };
   }
+}
+
+export interface VisionRequestInput {
+  systemPrompt: string;
+  userPrompt: string;
+  referenceImages?: Array<{ dataUrl: string; name: string }>;
+}
+
+export async function runVisionRequest(
+  settings: ExtensionSettings,
+  input: VisionRequestInput
+): Promise<{ model: string; rawText: string }> {
+  const model = settings.visionModel;
+
+  if (settings.provider === "claude") {
+    return requestWithAnthropic(settings, { ...input, model });
+  }
+
+  if (settings.provider === "gemini") {
+    return requestWithGemini(settings, { ...input, model });
+  }
+
+  return requestWithOpenAiCompatible(settings, { ...input, model });
 }
