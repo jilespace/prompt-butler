@@ -15,6 +15,7 @@ export const PROMPT_STORAGE_KEYS = {
 
 export const DEFAULT_PROMPT_TABS = [
   "角色设定",
+  "抓图",
   "图像生成",
   "收藏",
   "Nano精修",
@@ -23,7 +24,7 @@ export const DEFAULT_PROMPT_TABS = [
   "电商详情页"
 ] as const;
 
-export const CORE_TABS: readonly string[] = ["角色设定", "图像生成", "收藏"];
+export const CORE_TABS: readonly string[] = ["角色设定", "抓图", "图像生成", "收藏"];
 
 export const CUSTOM_TABS_KEY = "prompt-butler-custom-tabs";
 const DELETED_TABS_KEY = "prompt-butler-deleted-tabs";

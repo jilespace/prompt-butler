@@ -7,6 +7,7 @@ import { Rnd } from "react-rnd";
 import { FavoritesStudio } from "./FavoritesStudio";
 import { ImageStudio } from "./ImageStudio";
 import { RolePromptStudio } from "./RolePromptStudio";
+import { GrabStudio } from "./GrabStudio";
 import {
   addCustomTab,
   cleanupInvalidTabs,
@@ -19,6 +20,8 @@ import {
   saveTabOrder,
   PROMPT_STORAGE_KEYS
 } from "../lib/prompt-library";
+import { GRAB_STORAGE_KEYS } from "../lib/grab-library";
+import { storageSet } from "../lib/storage";
 import { useChromeStorage } from "../hooks/useChromeStorage";
 import { useExtensionSettings } from "../hooks/useExtensionSettings";
 import { subscribeToast } from "../lib/toast";
@@ -41,6 +44,7 @@ export function OverlayApp({ embedded = false }: OverlayAppProps) {
     []
   );
   const { value: favorites } = favoritesStorage;
+  const grabFocus = useChromeStorage<string | null>(GRAB_STORAGE_KEYS.focus, null);
   const [customTabs, setCustomTabs] = useState<string[]>([]);
   const [visibleTabs, setVisibleTabs] = useState<string[]>(DEFAULT_PROMPT_TABS.slice());
   const [isCreatingTab, setIsCreatingTab] = useState(false);
@@ -69,6 +73,13 @@ export function OverlayApp({ embedded = false }: OverlayAppProps) {
   }, []);
 
   useEffect(() => {
+    if (grabFocus.value) {
+      setActiveTab("抓图");
+      void storageSet(GRAB_STORAGE_KEYS.focus, null);
+    }
+  }, [grabFocus.value]);
+
+  useEffect(() => {
     return subscribeToast((message) => {
       if (toastTimerRef.current) {
         clearTimeout(toastTimerRef.current);
@@ -81,7 +92,7 @@ export function OverlayApp({ embedded = false }: OverlayAppProps) {
   }, []);
 
   const libraryTabs = visibleTabs.filter(
-    (tab) => tab !== "角色设定" && tab !== "图像生成"
+    (tab) => tab !== "角色设定" && tab !== "图像生成" && tab !== "抓图"
   );
   const availableCategories: string[] = [...libraryTabs];
 
@@ -458,6 +469,8 @@ export function OverlayApp({ embedded = false }: OverlayAppProps) {
                 activeCategory="收藏"
                 searchQuery={searchQuery}
               />
+            ) : activeTab === "抓图" ? (
+              <GrabStudio />
             ) : activeTab === "角色设定" ? (
               <RolePromptStudio settings={settings} isServiceReady={isServiceReady} />
             ) : activeTab === "收藏" ? (
