@@ -13,6 +13,7 @@ import {
 } from "../lib/provider-presets";
 import { sendRuntimeMessage } from "../lib/runtime";
 import { useExtensionSettings } from "../hooks/useExtensionSettings";
+import { TemplateManager } from "./TemplateManager";
 import { IMAGE_ASPECT_RATIOS, IMAGE_COUNTS, IMAGE_RESOLUTIONS } from "../types/settings";
 import type { ExtensionSettings } from "../types/settings";
 import type { ConnectionTestResult, ModelDetectionResult } from "../types/runtime";
@@ -639,6 +640,10 @@ export function OptionsApp() {
               </div>
             </article>
           </aside>
+        </section>
+
+        <section className="space-y-6">
+          <TemplateManager />
         </section>
       </motion.div>
     </main>
