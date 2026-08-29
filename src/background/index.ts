@@ -3,7 +3,10 @@ import { detectProviderModels } from "./model-discovery";
 import { generatePromptFromProvider } from "./prompt-generator";
 import { optimizePromptWithProvider } from "./prompt-generator";
 import { testProviderConnection } from "./provider-health";
+import { generateGrabPrompt } from "./image-grab";
 import { finishImageTask, finishPromptTask } from "../lib/task-broker";
+import { finishGrabTask, startGrabTask } from "../lib/task-broker";
+import { addGrabResult, ensureGrabTemplates } from "../lib/grab-library";
 import { importSeedPrompts, ensureSeedCategories } from "../lib/prompt-library";
 import { SEED_PROMPTS } from "../lib/seed-prompts";
 import type { RuntimeRequestMessage } from "../types/runtime";
@@ -61,10 +64,12 @@ async function tryImportSeedPrompts() {
 chrome.runtime.onInstalled.addListener(() => {
   console.log("[Prompt Butler] 扩展已安装。");
   void tryImportSeedPrompts();
+  void ensureGrabTemplates();
 });
 
 // 每次 Service Worker 启动也检查（覆盖已安装但未导入的情况）
 void tryImportSeedPrompts();
+void ensureGrabTemplates();
 
 chrome.action.onClicked.addListener(() => {
   void openOrFocusAppWindow();
@@ -122,6 +127,21 @@ chrome.runtime.onMessage.addListener((message: RuntimeRequestMessage, _sender, s
 
       if (message.type === "image:download") {
         const result = await downloadImages(message.payload.urls);
+        sendResponse(result);
+        return;
+      }
+
+      if (message.type === "image-grab:generate") {
+        await startGrabTask();
+        const result = await generateGrabPrompt(
+          message.payload.settings,
+          message.payload.input.imageUrl,
+          message.payload.input.templateId
+        );
+        await finishGrabTask(result);
+        if (result.ok) {
+          await addGrabResult(result.result);
+        }
         sendResponse(result);
         return;
       }
