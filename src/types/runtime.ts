@@ -5,6 +5,7 @@ import type {
   PromptOptimizationResult
 } from "./prompt";
 import type { ImageGenerationInput, ImageGenerationResult } from "./image";
+import type { GrabGenerationInput, GrabGenerationResult } from "./grab";
 
 export interface ConnectionTestSuccess {
   ok: true;
@@ -99,6 +100,14 @@ export interface CancelImageGenerationMessage {
   type: "image:cancel";
 }
 
+export interface GenerateGrabMessage {
+  type: "image-grab:generate";
+  payload: {
+    settings: ExtensionSettings;
+    input: GrabGenerationInput;
+  };
+}
+
 export type RuntimeRequestMessage =
   | TestProviderConnectionMessage
   | DetectProviderModelsMessage
@@ -107,7 +116,8 @@ export type RuntimeRequestMessage =
   | GenerateImagesMessage
   | DownloadImagesMessage
   | OpenOptionsPageMessage
-  | CancelImageGenerationMessage;
+  | CancelImageGenerationMessage
+  | GenerateGrabMessage;
 
 export type RuntimeResponseMessage =
   | ConnectionTestResult
@@ -115,5 +125,6 @@ export type RuntimeResponseMessage =
   | PromptGenerationResult
   | PromptOptimizationResult
   | ImageGenerationResult
+  | GrabGenerationResult
   | number[]
   | { ok: true };
